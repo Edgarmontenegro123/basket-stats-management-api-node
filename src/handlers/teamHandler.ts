@@ -41,3 +41,15 @@ export const createTeam = (req: Request, res: Response) => {
 
     return res.status(201).json(team);
 };
+
+export const getTeamById = (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const team = teams.find((team) => team.id === id);
+
+    if (!team) {
+        return res.status(404).json({ message: 'team not found' });
+    }
+
+    return res.status(200).json(team);
+};
