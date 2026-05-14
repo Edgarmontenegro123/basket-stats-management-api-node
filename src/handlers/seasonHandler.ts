@@ -49,3 +49,15 @@ export const createSeason = (req: Request, res: Response) => {
 
     return res.status(201).json(season);
 };
+
+export const getSeasonById = (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const season = seasons.find((season) => season.id === id);
+
+    if (!season) {
+        return res.status(404).json({ message: 'season not found' });
+    }
+
+    return res.status(200).json(season);
+};
