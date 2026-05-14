@@ -54,13 +54,52 @@ export const getTeamById = (req: Request, res: Response) => {
     return res.status(200).json(team);
 };
 
+export const updateTeam = (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const team = teams.find((team) => team.id === id);
+
+    if (!team) {
+        return res.status(404).json({ message: 'team not found' });
+    }
+
+    const {
+        name,
+        short_name,
+        logo_url,
+        primary_color,
+        secondary_color,
+    } = req.body;
+
+    if (!name || name.trim().length < 2) {
+        return res.status(400).json({
+            message: 'name is required and must have at least 2 characters',
+        });
+    }
+
+    if (!short_name || short_name.trim().length < 2) {
+        return res.status(400).json({
+            message: 'short_name is required and must have at least 2 characters',
+        });
+    }
+
+    team.name = name;
+    team.short_name = short_name;
+    team.logo_url = logo_url || '';
+    team.primary_color = primary_color || '';
+    team.secondary_color = secondary_color || '';
+    team.updated_at = new Date().toISOString();
+
+    return res.status(200).json(team);
+};
+
 export const deleteTeam = (req: Request, res: Response) => {
     const { id } = req.params;
 
     const teamIndex = teams.findIndex((team) => team.id === id);
 
     if (teamIndex === -1) {
-        return res.status(404).json({ message: "team not found" });
+        return res.status(404).json({ message: 'team not found' });
     }
 
     teams.splice(teamIndex, 1);
