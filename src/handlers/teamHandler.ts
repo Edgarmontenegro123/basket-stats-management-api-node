@@ -53,3 +53,17 @@ export const getTeamById = (req: Request, res: Response) => {
 
     return res.status(200).json(team);
 };
+
+export const deleteTeam = (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const teamIndex = teams.findIndex((team) => team.id === id);
+
+    if (teamIndex === -1) {
+        return res.status(404).json({ message: "team not found" });
+    }
+
+    teams.splice(teamIndex, 1);
+
+    return res.status(204).send();
+};
