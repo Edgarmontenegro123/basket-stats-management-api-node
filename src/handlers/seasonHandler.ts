@@ -1,0 +1,51 @@
+import { Request, Response } from 'express';
+import { Season } from '../models/season';
+import { teams } from './teamHandler';
+
+let seasons: Season[] = [];
+
+export const listSeasons = (_req: Request, res: Response) => {
+    return res.status(200).json(seasons);
+};
+
+export const createSeason = (req: Request, res: Response) => {
+    const { team_id, name, year, is_active } = req.body;
+
+    if (!team_id) {
+        return res.status(400).json({ message: 'team_id is required' });
+    }
+
+    const teamExists = teams.some((team) => team.id === team_id);
+
+    if (!teamExists) {
+        return res.status(404).json({ message: 'team not found' });
+    }
+
+    if (!name || name.trim().length < 2) {
+        return res.status(400).json({
+            message: 'name is required and must have at least 2 characters',
+        });
+    }
+
+    if (!year || Number(year) < 2000) {
+        return res.status(400).json({
+            message: 'year is required and must be greater than or equal to 2000',
+        });
+    }
+
+    const now = new Date().toISOString();
+
+    const season: Season = {
+        id: Date.now().toString(),
+        team_id,
+        name,
+        year: Number(year),
+        is_active: Boolean(is_active),
+        created_at: now,
+        updated_at: now,
+    };
+
+    seasons.push(season);
+
+    return res.status(201).json(season);
+};

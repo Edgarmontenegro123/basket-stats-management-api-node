@@ -1,7 +1,7 @@
 import {Request, Response} from 'express';
 import {Team} from '../models/team';
 
-let teams: Team[] = [];
+export let teams: Team[] = [];
 
 export const listTeams = (_req: Request, res: Response) => {
     res.status(200).json(teams);
