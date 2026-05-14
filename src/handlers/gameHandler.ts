@@ -82,3 +82,17 @@ export const getGameById = (req: Request, res: Response) => {
 
     return res.status(200).json(game);
 };
+
+export const deleteGame = (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const gameIndex = games.findIndex((game) => game.id === id);
+
+    if (gameIndex === -1) {
+        return res.status(404).json({ message: 'game not found' });
+    }
+
+    games.splice(gameIndex, 1);
+
+    return res.status(204).send();
+};
