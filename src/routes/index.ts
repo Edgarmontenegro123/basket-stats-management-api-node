@@ -1,6 +1,7 @@
 import {Router} from 'express'
 import teamRoutes from './teamRoutes'
 import seasonRoutes from './seasonRoutes'
+import gameRoutes from './gameRoutes';
 
 const router = Router()
 
@@ -13,5 +14,6 @@ router.get('/health', (_req, res) => {
 
 router.use(teamRoutes)
 router.use(seasonRoutes)
+router.use(gameRoutes)
 
 export default router

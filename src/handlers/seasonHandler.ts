@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Season } from '../models/season';
 import { teams } from './teamHandler';
 
-let seasons: Season[] = [];
+export let seasons: Season[] = [];
 
 export const listSeasons = (_req: Request, res: Response) => {
     return res.status(200).json(seasons);
