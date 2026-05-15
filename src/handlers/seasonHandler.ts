@@ -1,66 +1,98 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto'
 import { Season } from '../models/season';
 import { teams } from './teamHandler';
+import { pool } from '../db/pool'
 
 export let seasons: Season[] = [];
 
-export const listSeasons = (_req: Request, res: Response) => {
-    return res.status(200).json(seasons);
-};
+export const listSeasons = async (req: Request, res: Response) => {
+    try {
+        const query = `
+      SELECT *
+      FROM seasons
+      ORDER BY created_at DESC
+    `
 
-export const createSeason = (req: Request, res: Response) => {
-    const { team_id, name, year, is_active } = req.body;
+        const result = await pool.query(query)
 
-    if (!team_id) {
-        return res.status(400).json({ message: 'team_id is required' });
+        res.status(200).json(result.rows)
+    } catch (error) {
+        console.error('Error getting seasons:', error)
+
+        res.status(500).json({
+            message: 'Error getting seasons',
+        })
     }
+}
 
-    const teamExists = teams.some((team) => team.id === team_id);
+export const createSeason = async (req: Request, res: Response) => {
+    try {
+        const { team_id, name, year, is_active } = req.body
 
-    if (!teamExists) {
-        return res.status(404).json({ message: 'team not found' });
-    }
-
-    if (!name || name.trim().length < 2) {
-        return res.status(400).json({
-            message: 'name is required and must have at least 2 characters',
-        });
-    }
-
-    if (!year || Number(year) < 2000) {
-        return res.status(400).json({
-            message: 'year is required and must be greater than or equal to 2000',
-        });
-    }
-
-    const now = new Date().toISOString();
-
-    const season: Season = {
-        id: Date.now().toString(),
+        const query = `
+      INSERT INTO seasons (
+        id,
         team_id,
         name,
-        year: Number(year),
-        is_active: Boolean(is_active),
-        created_at: now,
-        updated_at: now,
-    };
+        year,
+        is_active,
+        created_at,
+        updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `
 
-    seasons.push(season);
+        const values = [
+            crypto.randomUUID(),
+            team_id,
+            name,
+            year,
+            is_active,
+            new Date(),
+            new Date(),
+        ]
 
-    return res.status(201).json(season);
-};
+        const result = await pool.query(query, values)
 
-export const getSeasonById = (req: Request, res: Response) => {
-    const { id } = req.params;
+        res.status(201).json(result.rows[0])
+    } catch (error) {
+        console.error('Error creating season:', error)
 
-    const season = seasons.find((season) => season.id === id);
-
-    if (!season) {
-        return res.status(404).json({ message: 'season not found' });
+        res.status(500).json({
+            message: 'Error creating season',
+        })
     }
+}
 
-    return res.status(200).json(season);
-};
+export const getSeasonById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+
+        const query = `
+      SELECT *
+      FROM seasons
+      WHERE id = $1
+    `
+
+        const result = await pool.query(query, [id])
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Season not found',
+            })
+        }
+
+        res.status(200).json(result.rows[0])
+    } catch (error) {
+        console.error('Error getting season:', error)
+
+        res.status(500).json({
+            message: 'Error getting season',
+        })
+    }
+}
 
 export const deleteSeason = (req: Request, res: Response) => {
     const { id } = req.params;
