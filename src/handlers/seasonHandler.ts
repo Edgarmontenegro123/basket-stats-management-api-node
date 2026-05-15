@@ -94,62 +94,76 @@ export const getSeasonById = async (req: Request, res: Response) => {
     }
 }
 
-export const deleteSeason = (req: Request, res: Response) => {
-    const { id } = req.params;
+export const updateSeason = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+        const { team_id, name, year, is_active } = req.body
 
-    const seasonIndex = seasons.findIndex((season) => season.id === id);
+        const query = `
+      UPDATE seasons
+      SET
+        team_id = $1,
+        name = $2,
+        year = $3,
+        is_active = $4,
+        updated_at = $5
+      WHERE id = $6
+      RETURNING *
+    `
 
-    if (seasonIndex === -1) {
-        return res.status(404).json({ message: 'season not found' });
+        const values = [
+            team_id,
+            name,
+            year,
+            is_active,
+            new Date(),
+            id,
+        ]
+
+        const result = await pool.query(query, values)
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Season not found',
+            })
+        }
+
+        res.status(200).json(result.rows[0])
+    } catch (error) {
+        console.error('Error updating season:', error)
+
+        res.status(500).json({
+            message: 'Error updating season',
+        })
     }
+}
 
-    seasons.splice(seasonIndex, 1);
+export const deleteSeason = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
 
-    return res.status(204).send();
-};
+        const query = `
+      DELETE FROM seasons
+      WHERE id = $1
+      RETURNING *
+    `
 
-export const updateSeason = (req: Request, res: Response) => {
-    const { id } = req.params;
+        const result = await pool.query(query, [id])
 
-    const season = seasons.find((season) => season.id === id);
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Season not found',
+            })
+        }
 
-    if (!season) {
-        return res.status(404).json({ message: 'season not found' });
+        res.status(200).json({
+            message: 'Season deleted successfully',
+        })
+    } catch (error) {
+        console.error('Error deleting season:', error)
+
+        res.status(500).json({
+            message: 'Error deleting season',
+        })
     }
-
-    const { team_id, name, year, is_active } = req.body;
-
-    if (!team_id) {
-        return res.status(400).json({
-            message: 'team_id is required',
-        });
-    }
-
-    const teamExists = teams.some((team) => team.id === team_id);
-
-    if (!teamExists) {
-        return res.status(404).json({
-            message: 'team not found',
-        });
-    }
-
-    if (!name || name.trim().length < 2) {
-        return res.status(400).json({
-            message: 'name is required and must have at least 2 characters',
-        });
-    }
-
-    if (!year || Number(year) < 2000) {
-        return res.status(400).json({
-            message: 'year is required and must be greater than or equal to 2000',
-        });
-    }
-
-    season.team_id = team_id;
-    season.name = name;
-    season.year = Number(year);
-    season.is_active = Boolean(is_active);
-    season.updated_at = new Date().toISOString();
-
-    return res.status(200).json(season);
-};
+}
