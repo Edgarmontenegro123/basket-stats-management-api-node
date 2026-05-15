@@ -16,41 +16,6 @@ export const listTeams = async (_req: Request, res: Response) => {
     }
 };
 
-/*export const createTeam = (req: Request, res: Response) => {
-    const {
-        name,
-        short_name,
-        logo_url,
-        primary_color,
-        secondary_color,
-    } = req.body;
-
-    if (!name || name.trim().length < 2) {
-        return res.status(400).json({ message: 'name is required and must have at least 2 characters' });
-    }
-
-    if (!short_name || short_name.trim().length < 2) {
-        return res.status(400).json({ message: 'short_name is required and must have at least 2 characters' });
-    }
-
-    const now = new Date().toISOString();
-
-    const team: Team = {
-        id: Date.now().toString(),
-        name,
-        short_name,
-        logo_url: logo_url || '',
-        primary_color: primary_color || '',
-        secondary_color: secondary_color || '',
-        created_at: now,
-        updated_at: now,
-    };
-
-    teams.push(team);
-
-    return res.status(201).json(team);
-};*/
-
 export const createTeam = async (req: Request, res: Response) => {
     try {
         const {
@@ -133,55 +98,85 @@ export const getTeamById = async (req: Request, res: Response) => {
     }
 };
 
-export const updateTeam = (req: Request, res: Response) => {
-    const { id } = req.params;
+export const updateTeam = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
 
-    const team = teams.find((team) => team.id === id);
+        const {
+            name,
+            short_name,
+            logo_url,
+            primary_color,
+            secondary_color,
+        } = req.body
 
-    if (!team) {
-        return res.status(404).json({ message: 'team not found' });
+        const query = `
+      UPDATE teams
+      SET
+        name = $1,
+        short_name = $2,
+        logo_url = $3,
+        primary_color = $4,
+        secondary_color = $5,
+        updated_at = $6
+      WHERE id = $7
+      RETURNING *
+    `
+
+        const values = [
+            name,
+            short_name,
+            logo_url,
+            primary_color,
+            secondary_color,
+            new Date(),
+            id,
+        ]
+
+        const result = await pool.query(query, values)
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Team not found',
+            })
+        }
+
+        res.status(200).json(result.rows[0])
+    } catch (error) {
+        console.error('Error updating team:', error)
+
+        res.status(500).json({
+            message: 'Error updating team',
+        })
     }
+}
 
-    const {
-        name,
-        short_name,
-        logo_url,
-        primary_color,
-        secondary_color,
-    } = req.body;
+export const deleteTeam = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
 
-    if (!name || name.trim().length < 2) {
-        return res.status(400).json({
-            message: 'name is required and must have at least 2 characters',
-        });
+        const query = `
+      DELETE FROM teams
+      WHERE id = $1
+      RETURNING *
+    `
+
+        const result = await pool.query(query, [id])
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Team not found',
+            })
+        }
+
+        res.status(200).json({
+            message: 'Team deleted successfully',
+        })
+    } catch (error) {
+        console.error('Error deleting team:', error)
+
+        res.status(500).json({
+            message: 'Error deleting team',
+        })
     }
-
-    if (!short_name || short_name.trim().length < 2) {
-        return res.status(400).json({
-            message: 'short_name is required and must have at least 2 characters',
-        });
-    }
-
-    team.name = name;
-    team.short_name = short_name;
-    team.logo_url = logo_url || '';
-    team.primary_color = primary_color || '';
-    team.secondary_color = secondary_color || '';
-    team.updated_at = new Date().toISOString();
-
-    return res.status(200).json(team);
-};
-
-export const deleteTeam = (req: Request, res: Response) => {
-    const { id } = req.params;
-
-    const teamIndex = teams.findIndex((team) => team.id === id);
-
-    if (teamIndex === -1) {
-        return res.status(404).json({ message: 'team not found' });
-    }
-
-    teams.splice(teamIndex, 1);
-
-    return res.status(204).send();
-};
+}
