@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 import { Game } from '../models/game';
-import { teams } from './teamHandler';
-import { seasons } from './seasonHandler';
 import crypto from 'crypto';
 import { pool } from '../db/pool';
 
@@ -175,16 +173,32 @@ export const updateGame = async (req: Request, res: Response) => {
     }
 }
 
-export const deleteGame = (req: Request, res: Response) => {
-    const { id } = req.params;
+export const deleteGame = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
 
-    const gameIndex = games.findIndex((game) => game.id === id);
+        const query = `
+      DELETE FROM games
+      WHERE id = $1
+      RETURNING *
+    `
 
-    if (gameIndex === -1) {
-        return res.status(404).json({ message: 'game not found' });
+        const result = await pool.query(query, [id])
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Game not found',
+            })
+        }
+
+        res.status(200).json({
+            message: 'Game deleted successfully',
+        })
+    } catch (error) {
+        console.error('Error deleting game:', error)
+
+        res.status(500).json({
+            message: 'Error deleting game',
+        })
     }
-
-    games.splice(gameIndex, 1);
-
-    return res.status(204).send();
-};
+}
