@@ -22,3 +22,32 @@ CREATE TABLE seasons (
                                  REFERENCES teams(id)
                                  ON DELETE CASCADE
 );
+
+CREATE TABLE games (
+                       id TEXT PRIMARY KEY,
+                       season_id TEXT NOT NULL,
+                       home_team_id TEXT NOT NULL,
+                       away_team_id TEXT NOT NULL,
+                       game_date TIMESTAMP NOT NULL,
+                       location TEXT,
+                       is_friendly BOOLEAN NOT NULL,
+                       home_score INTEGER,
+                       away_score INTEGER,
+                       status TEXT NOT NULL,
+                       created_at TIMESTAMP NOT NULL,
+                       updated_at TIMESTAMP NOT NULL,
+                       CONSTRAINT fk_games_season
+                           FOREIGN KEY (season_id)
+                               REFERENCES seasons(id)
+                               ON DELETE CASCADE,
+                       CONSTRAINT fk_games_home_team
+                           FOREIGN KEY (home_team_id)
+                               REFERENCES teams(id)
+                               ON DELETE CASCADE,
+                       CONSTRAINT fk_games_away_team
+                           FOREIGN KEY (away_team_id)
+                               REFERENCES teams(id)
+                               ON DELETE CASCADE,
+                       CONSTRAINT chk_games_different_teams
+                           CHECK (home_team_id <> away_team_id)
+);
