@@ -115,83 +115,65 @@ export const getGameById = async (req: Request, res: Response) => {
     }
 }
 
-export const updateGame = (req: Request, res: Response) => {
-    const { id } = req.params;
+export const updateGame = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
 
-    const game = games.find((game) => game.id === id);
+        const {
+            season_id,
+            home_team_id,
+            away_team_id,
+            game_date,
+            location,
+            is_friendly,
+            home_score,
+            away_score,
+            status,
+        } = req.body
 
-    if (!game) {
-        return res.status(404).json({ message: 'game not found' });
+        const query = `
+      UPDATE games
+      SET
+        season_id = $1,
+        home_team_id = $2,
+        away_team_id = $3,
+        game_date = $4,
+        location = $5,
+        is_friendly = $6,
+        home_score = $7,
+        away_score = $8,
+        status = $9,
+        updated_at = $10
+      WHERE id = $11
+      RETURNING *
+    `
+
+        const values = [
+            season_id,
+            home_team_id,
+            away_team_id,
+            game_date,
+            location,
+            is_friendly,
+            home_score,
+            away_score,
+            status,
+            new Date(),
+            id,
+        ]
+
+        const result = await pool.query(query, values)
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Game not found' })
+        }
+
+        res.status(200).json(result.rows[0])
+    } catch (error) {
+        console.error('Error updating game:', error)
+        res.status(500).json({ message: 'Error updating game' })
     }
-
-    const {
-        season_id,
-        home_team_id,
-        away_team_id,
-        game_date,
-        location,
-        is_friendly,
-        home_score,
-        away_score,
-        status,
-    } = req.body;
-
-    if (!season_id) {
-        return res.status(400).json({
-            message: 'season_id is required',
-        });
-    }
-
-    const seasonExists = seasons.some(
-        (season) => season.id === season_id,
-    );
-
-    if (!seasonExists) {
-        return res.status(404).json({
-            message: 'season not found',
-        });
-    }
-
-    const homeTeamExists = teams.some(
-        (team) => team.id === home_team_id,
-    );
-
-    const awayTeamExists = teams.some(
-        (team) => team.id === away_team_id,
-    );
-
-    if (!homeTeamExists) {
-        return res.status(404).json({
-            message: 'home team not found',
-        });
-    }
-
-    if (!awayTeamExists) {
-        return res.status(404).json({
-            message: 'away team not found',
-        });
-    }
-
-    if (home_team_id === away_team_id) {
-        return res.status(400).json({
-            message:
-                'home_team_id and away_team_id must be different',
-        });
-    }
-
-    game.season_id = season_id;
-    game.home_team_id = home_team_id;
-    game.away_team_id = away_team_id;
-    game.game_date = game_date || game.game_date;
-    game.location = location || '';
-    game.is_friendly = Boolean(is_friendly);
-    game.home_score = Number(home_score) || 0;
-    game.away_score = Number(away_score) || 0;
-    game.status = status || 'scheduled';
-    game.updated_at = new Date().toISOString();
-
-    return res.status(200).json(game);
-};
+}
 
 export const deleteGame = (req: Request, res: Response) => {
     const { id } = req.params;
