@@ -1,9 +1,6 @@
 import {Request, Response} from 'express';
-import {Team} from '../models/team';
 import {pool} from '../db/pool';
 import crypto from 'crypto'
-
-export let teams: Team[] = [];
 
 export const listTeams = async (_req: Request, res: Response) => {
     try {

@@ -1,16 +1,20 @@
 import { Request, Response } from 'express';
-import { Game } from '../models/game';
 import crypto from 'crypto';
 import { pool } from '../db/pool';
-
-let games: Game[] = [];
 
 export const listGames = async (req: Request, res: Response) => {
     try {
         const query = `
-      SELECT *
-      FROM games
-      ORDER BY created_at DESC
+            SELECT
+                games.*,
+                home_team.name AS home_team_name,
+                away_team.name AS away_team_name
+            FROM games
+                     JOIN teams AS home_team
+                          ON games.home_team_id = home_team.id
+                     JOIN teams AS away_team
+                          ON games.away_team_id = away_team.id
+            ORDER BY games.created_at DESC
     `
 
         const result = await pool.query(query)

@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto'
-import { Season } from '../models/season';
-import { teams } from './teamHandler';
 import { pool } from '../db/pool'
-
-export let seasons: Season[] = [];
 
 export const listSeasons = async (req: Request, res: Response) => {
     try {
