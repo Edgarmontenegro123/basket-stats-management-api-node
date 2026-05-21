@@ -94,9 +94,16 @@ export const getGameById = async (req: Request, res: Response) => {
         const { id } = req.params
 
         const query = `
-      SELECT *
-      FROM games
-      WHERE id = $1
+            SELECT
+                games.*,
+                home_team.name AS home_team_name,
+                away_team.name AS away_team_name
+            FROM games
+                     JOIN teams AS home_team
+                          ON games.home_team_id = home_team.id
+                     JOIN teams AS away_team
+                          ON games.away_team_id = away_team.id
+            WHERE games.id = $1
     `
 
         const result = await pool.query(query, [id])
