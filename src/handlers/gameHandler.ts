@@ -184,6 +184,53 @@ export const updateGame = async (req: Request, res: Response) => {
     }
 }
 
+export const updateGameResult = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+
+        const {
+            home_score,
+            away_score,
+            status,
+        } = req.body
+
+        const query = `
+            UPDATE games
+            SET
+                home_score = $1,
+                away_score = $2,
+                status = $3,
+                updated_at = $4
+            WHERE id = $5
+            RETURNING *
+        `
+
+        const values = [
+            home_score,
+            away_score,
+            status,
+            new Date(),
+            id,
+        ]
+
+        const result = await pool.query(query, values)
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Game not found',
+            })
+        }
+
+        res.status(200).json(result.rows[0])
+    } catch (error) {
+        console.error('Error updating game result:', error)
+
+        res.status(500).json({
+            message: 'Error updating game result',
+        })
+    }
+}
+
 export const deleteGame = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
