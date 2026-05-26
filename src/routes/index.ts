@@ -1,4 +1,5 @@
 import {Router} from 'express'
+import playerRoutes from './playerRoutes'
 import teamRoutes from './teamRoutes'
 import seasonRoutes from './seasonRoutes'
 import gameRoutes from './gameRoutes';
@@ -12,6 +13,7 @@ router.get('/health', (_req, res) => {
     })
 })
 
+router.use(playerRoutes)
 router.use(teamRoutes)
 router.use(seasonRoutes)
 router.use(gameRoutes)
