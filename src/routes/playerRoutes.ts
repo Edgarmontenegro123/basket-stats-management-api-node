@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { authMiddleware } from '../middleware/authMiddleware'
 import {
     createPlayer,
     deletePlayer,
@@ -13,8 +14,9 @@ const router = Router()
 router.get('/players', getPlayers)
 router.get('/players/:id', getPlayerById)
 router.get('/teams/:teamId/players', getPlayersByTeam)
-router.post('/players', createPlayer)
-router.put('/players/:id', updatePlayer)
-router.delete('/players/:id', deletePlayer)
+
+router.post('/players', authMiddleware,  createPlayer)
+router.put('/players/:id', authMiddleware,  updatePlayer)
+router.delete('/players/:id', authMiddleware,  deletePlayer)
 
 export default router
