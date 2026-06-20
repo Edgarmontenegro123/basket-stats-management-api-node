@@ -37,6 +37,7 @@ export const createGame = async (req: Request, res: Response) => {
             away_team_id,
             game_date,
             location,
+            video_url,
             is_friendly,
             home_score,
             away_score,
@@ -51,6 +52,7 @@ export const createGame = async (req: Request, res: Response) => {
         away_team_id,
         game_date,
         location,
+        video_url,
         is_friendly,
         home_score,
         away_score,
@@ -58,7 +60,7 @@ export const createGame = async (req: Request, res: Response) => {
         created_at,
         updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *
     `
 
@@ -69,6 +71,7 @@ export const createGame = async (req: Request, res: Response) => {
             away_team_id,
             game_date,
             location,
+            video_url || null,
             is_friendly,
             home_score,
             away_score,
@@ -134,6 +137,7 @@ export const updateGame = async (req: Request, res: Response) => {
             away_team_id,
             game_date,
             location,
+            video_url,
             is_friendly,
             home_score,
             away_score,
@@ -141,20 +145,21 @@ export const updateGame = async (req: Request, res: Response) => {
         } = req.body
 
         const query = `
-      UPDATE games
-      SET
-        season_id = $1,
-        home_team_id = $2,
-        away_team_id = $3,
-        game_date = $4,
-        location = $5,
-        is_friendly = $6,
-        home_score = $7,
-        away_score = $8,
-        status = $9,
-        updated_at = $10
-      WHERE id = $11
-      RETURNING *
+            UPDATE games
+            SET
+                season_id = $1,
+                home_team_id = $2,
+                away_team_id = $3,
+                game_date = $4,
+                location = $5,
+                video_url = $6,
+                is_friendly = $7,
+                home_score = $8,
+                away_score = $9,
+                status = $10,
+                updated_at = $11
+            WHERE id = $12
+                RETURNING *
     `
 
         const values = [
@@ -163,6 +168,7 @@ export const updateGame = async (req: Request, res: Response) => {
             away_team_id,
             game_date,
             location,
+            video_url || null,
             is_friendly,
             home_score,
             away_score,

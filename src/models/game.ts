@@ -5,6 +5,7 @@ export interface Game {
     away_team_id: string;
     game_date: string;
     location: string;
+    video_url: string | null;
     is_friendly: boolean;
     home_score: number;
     away_score: number;
