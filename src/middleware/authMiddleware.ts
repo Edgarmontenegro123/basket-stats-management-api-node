@@ -3,6 +3,20 @@ import jwt, { Secret } from 'jsonwebtoken'
 
 const JWT_SECRET: Secret = process.env.JWT_SECRET || 'basket_stats_dev_secret'
 
+type JwtPayload = {
+    id: string
+    email: string
+    role: string
+}
+
+declare global {
+    namespace Express {
+        interface Request {
+            user?: JwtPayload
+        }
+    }
+}
+
 export const authMiddleware = (
     req: Request,
     res: Response,
@@ -25,7 +39,8 @@ export const authMiddleware = (
     }
 
     try {
-        jwt.verify(token, JWT_SECRET)
+        req.user = jwt.verify(token, JWT_SECRET) as JwtPayload
+
         next()
     } catch (error) {
         res.status(401).json({

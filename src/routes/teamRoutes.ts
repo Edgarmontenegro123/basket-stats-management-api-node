@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { authMiddleware } from '../middleware/authMiddleware'
+import { authoriseRoles } from '../middleware/authoriseRoles'
 import {
     createTeam,
     getTeamById,
@@ -14,8 +15,8 @@ const router = Router()
 router.get('/teams', listTeams)
 router.get('/teams/:id', getTeamById)
 
-router.post('/teams', authMiddleware, createTeam)
-router.put('/teams/:id', authMiddleware, updateTeam)
-router.delete('/teams/:id', authMiddleware, deleteTeam)
+router.post('/teams', authMiddleware, authoriseRoles('admin', 'coach'), createTeam)
+router.put('/teams/:id', authMiddleware, authoriseRoles('admin', 'coach'), updateTeam)
+router.delete('/teams/:id', authMiddleware, authoriseRoles('admin', 'coach'), deleteTeam)
 
 export default router;
