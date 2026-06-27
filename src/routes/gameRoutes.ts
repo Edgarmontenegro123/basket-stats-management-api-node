@@ -17,7 +17,7 @@ router.get('/games/:id', getGameById)
 
 router.post('/games', authMiddleware, authoriseRoles('admin'), createGame)
 router.put('/games/:id', authMiddleware, authoriseRoles('admin'), updateGame)
-router.patch('/games/:id/result', authMiddleware, authoriseRoles('admin', 'service'), updateGameResult)
+router.patch('/games/:id/result', authMiddleware, authoriseRoles('admin', 'coach', 'dt', 'service'), updateGameResult)
 router.delete('/games/:id', authMiddleware, authoriseRoles('admin'), deleteGame)
 
 
