@@ -4,12 +4,12 @@ import router from './routes'
 
 const app = express()
 const PORT = process.env.PORT || 3001
-const allowedOrigins = [
+const allowedOrigins: string[] = [
     process.env.FRONTEND_URL,
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175',
-].filter(Boolean)
+].filter((origin): origin is string => Boolean(origin))
 
 app.use(cors({
     origin: (origin, callback) => {
@@ -20,7 +20,13 @@ app.use(cors({
 
         callback(new Error('Not allowed by CORS'))
     },
-    methods: [ 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: [ 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}))
+
+app.options('*', cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 
