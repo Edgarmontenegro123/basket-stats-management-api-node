@@ -14,8 +14,8 @@ const router = Router()
 router.get('/seasons', listSeasons)
 router.get("/seasons/:id", getSeasonById)
 
-router.post('/seasons', authMiddleware, authoriseRoles('admin', 'coach'), createSeason)
-router.put('/seasons/:id', authMiddleware, authoriseRoles('admin', 'coach'), updateSeason)
-router.delete('/seasons/:id', authMiddleware, authoriseRoles('admin', 'coach'), deleteSeason)
+router.post('/seasons', authMiddleware, authoriseRoles('admin'), createSeason)
+router.put('/seasons/:id', authMiddleware, authoriseRoles('admin'), updateSeason)
+router.delete('/seasons/:id', authMiddleware, authoriseRoles('admin'), deleteSeason)
 
 export default router;
