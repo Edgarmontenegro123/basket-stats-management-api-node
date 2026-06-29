@@ -152,11 +152,49 @@ export const deleteTeam = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
 
+        const linkedPlayers = await pool.query(
+            'SELECT id FROM players WHERE team_id = $1 LIMIT 1',
+            [id],
+        )
+
+        if (linkedPlayers.rows.length > 0) {
+            return res.status(409).json({
+                message: 'Team cannot be deleted because it has linked players.',
+            })
+        }
+
+        const linkedSeasons = await pool.query(
+            'SELECT id FROM seasons WHERE team_id = $1 LIMIT 1',
+            [id],
+        )
+
+        if (linkedSeasons.rows.length > 0) {
+            return res.status(409).json({
+                message: 'Team cannot be deleted because it has linked seasons.',
+            })
+        }
+
+        const linkedGames = await pool.query(
+            `
+            SELECT id
+            FROM games
+            WHERE home_team_id = $1 OR away_team_id = $1
+            LIMIT 1
+            `,
+            [id],
+        )
+
+        if (linkedGames.rows.length > 0) {
+            return res.status(409).json({
+                message: 'Team cannot be deleted because it has linked games.',
+            })
+        }
+
         const query = `
-      DELETE FROM teams
-      WHERE id = $1
-      RETURNING *
-    `
+            DELETE FROM teams
+            WHERE id = $1
+            RETURNING *
+        `
 
         const result = await pool.query(query, [id])
 
