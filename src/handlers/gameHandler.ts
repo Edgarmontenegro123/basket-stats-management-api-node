@@ -239,13 +239,26 @@ export const updateGameResult = async (req: Request, res: Response) => {
 
 export const deleteGame = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params
+        const rawId = req.params.id
+        const id = Array.isArray(rawId) ? rawId[0] : rawId
+        const authHeader = req.header('Authorization')
+
+        if (!id) {
+            return res.status(400).json({
+                message: 'Game id is required',
+            })
+        }
+
+        await deleteAnalyticsStatsByGameId(
+            id,
+            authHeader,
+        )
 
         const query = `
-      DELETE FROM games
-      WHERE id = $1
-      RETURNING *
-    `
+            DELETE FROM games
+            WHERE id = $1
+            RETURNING *
+        `
 
         const result = await pool.query(query, [id])
 
@@ -264,5 +277,32 @@ export const deleteGame = async (req: Request, res: Response) => {
         res.status(500).json({
             message: 'Error deleting game',
         })
+    }
+}
+
+const deleteAnalyticsStatsByGameId = async (
+    gameId: string,
+    authHeader?: string,
+) => {
+    const analyticsApiUrl = process.env.ANALYTICS_API_URL
+
+    if (!analyticsApiUrl) {
+        throw new Error('ANALYTICS_API_URL is not configured')
+    }
+
+    const response = await fetch(
+        `${analyticsApiUrl}/analytics/games/${gameId}/stats`,
+        {
+            method: 'DELETE',
+            headers: {
+                ...(authHeader ? { Authorization: authHeader } : {}),
+            },
+        },
+    )
+
+    if (!response.ok) {
+        const text = await response.text()
+
+        throw new Error(text)
     }
 }
