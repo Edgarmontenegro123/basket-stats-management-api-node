@@ -286,6 +286,9 @@ const deleteAnalyticsStatsByGameId = async (
     gameId: string,
     authHeader?: string,
 ) => {
+    console.log('DEBUG - Available Env Keys:', Object.keys(process.env))
+    console.log('DEBUG - ANALYTICS_API_URL value:', process.env.ANALYTICS_API_URL)
+
     const analyticsApiUrl = process.env.ANALYTICS_API_URL
 
     if (!analyticsApiUrl) {
