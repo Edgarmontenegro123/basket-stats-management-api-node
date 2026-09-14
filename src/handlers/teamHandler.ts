@@ -148,6 +148,23 @@ export const updateTeam = async (req: Request, res: Response) => {
     }
 }
 
+const deleteAnalyticsStatsByTeamId = async (teamId: string | string[]) => {
+    const idParam = Array.isArray(teamId) ? teamId[0] : teamId
+    const analyticsUrl = process.env.ANALYTICS_API_URL
+    if (!analyticsUrl) {
+        console.error('ANALYTICS_API_URL is not configured')
+        return
+    }
+
+    try {
+        await fetch(`${analyticsUrl}/analytics/teams/${idParam}`, {
+            method: 'DELETE',
+        })
+    } catch (error) {
+        console.error('Error deleting analytics for team:', error)
+    }
+}
+
 export const deleteTeam = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
@@ -189,6 +206,8 @@ export const deleteTeam = async (req: Request, res: Response) => {
                 message: 'Team cannot be deleted because it has linked games.',
             })
         }
+
+        await deleteAnalyticsStatsByTeamId(id)
 
         const query = `
             DELETE FROM teams
