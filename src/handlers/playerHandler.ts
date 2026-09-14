@@ -232,9 +232,28 @@ export const updatePlayer = async (req: Request, res: Response) => {
     }
 }
 
+const deleteAnalyticsStatsByPlayerId = async (playerId: string | string[]) => {
+    const idParam = Array.isArray(playerId) ? playerId[0] : playerId
+    const analyticsUrl = process.env.ANALYTICS_API_URL
+    if (!analyticsUrl) {
+        console.error('ANALYTICS_API_URL is not configured')
+        return
+    }
+
+    try {
+        await fetch(`${analyticsUrl}/analytics/players/${idParam}`, {
+            method: 'DELETE',
+        })
+    } catch (error) {
+        console.error('Error deleting analytics for player:', error)
+    }
+}
+
 export const deletePlayer = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
+
+        await deleteAnalyticsStatsByPlayerId(id)
 
         const result = await pool.query(
             `
