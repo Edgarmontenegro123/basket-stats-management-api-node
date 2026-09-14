@@ -271,11 +271,13 @@ export const deleteGame = async (req: Request, res: Response) => {
         res.status(200).json({
             message: 'Game deleted successfully',
         })
-    } catch (error) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
         console.error('Error deleting game:', error)
 
         res.status(500).json({
             message: 'Error deleting game',
+            error: errorMessage,
         })
     }
 }
