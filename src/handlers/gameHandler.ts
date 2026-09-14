@@ -286,7 +286,7 @@ const deleteAnalyticsStatsByGameId = async (
     gameId: string,
     authHeader?: string,
 ) => {
-    const analyticsApiUrl = process.env.ANALYTICS_API_URL || 'https://basket-stats.alwaysdata.net'
+    const analyticsApiUrl = process.env.ANALYTICS_API_URL
 
     if (!analyticsApiUrl) {
         throw new Error('ANALYTICS_API_URL is not configured')
