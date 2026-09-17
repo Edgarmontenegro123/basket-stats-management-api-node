@@ -237,7 +237,7 @@ export const updateGameResult = async (req: Request, res: Response) => {
     }
 }
 
-export const deleteGame = async (req: Request, res: Response) => {
+/*export const deleteGame = async (req: Request, res: Response) => {
     try {
         const rawId = req.params.id
         const id = Array.isArray(rawId) ? rawId[0] : rawId
@@ -280,8 +280,47 @@ export const deleteGame = async (req: Request, res: Response) => {
             error: errorMessage,
         })
     }
+}*/
+export const deleteGame = async (req: Request, res: Response) => {
+    try {
+        const rawId = req.params.id
+        const id = Array.isArray(rawId) ? rawId[0] : rawId
+
+        if (!id) {
+            return res.status(400).json({
+                message: 'Game id is required',
+            })
+        }
+
+        const query = `
+            DELETE FROM games
+            WHERE id = $1
+            RETURNING *
+        `
+
+        const result = await pool.query(query, [id])
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Game not found',
+            })
+        }
+
+        res.status(200).json({
+            message: 'Game deleted successfully',
+        })
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.error('Error deleting game:', error)
+
+        res.status(500).json({
+            message: 'Error deleting game',
+            error: errorMessage,
+        })
+    }
 }
 
+/*
 const deleteAnalyticsStatsByGameId = async (
     gameId: string,
     authHeader?: string,
@@ -307,4 +346,4 @@ const deleteAnalyticsStatsByGameId = async (
 
         throw new Error(text)
     }
-}
+}*/
