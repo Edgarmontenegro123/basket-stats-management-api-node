@@ -24,4 +24,4 @@ jobs:
             git pull origin main
             cd ~
             docker compose build management-api
-            docker compose up -d --no-deps management-api
+            docker compose up -d --force-recreate --no-deps management-api
