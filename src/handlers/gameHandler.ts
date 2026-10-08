@@ -256,12 +256,19 @@ const deleteAnalyticsStatsByGameId = async (gameId: string) => {
             )
             : ''
 
-        await fetch(`${analyticsUrl}/games/${gameId}/stats`, {
+        const response = await fetch(`${analyticsUrl}/games/${gameId}/stats`, {
             method: 'DELETE',
             headers: {
                 Authorization: `Bearer ${serviceToken}`,
             },
         })
+
+        if (!response.ok) {
+            const errorText = await response.text()
+            console.error(`Failed to delete analytics stats: ${response.status} - ${errorText}`)
+        } else {
+            console.log(`Successfully deleted analytics stats for game ${gameId}`)
+        }
     } catch (error) {
         console.error('Error deleting analytics stats for game:', error)
     }
