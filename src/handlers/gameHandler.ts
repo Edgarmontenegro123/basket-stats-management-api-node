@@ -237,6 +237,22 @@ export const updateGameResult = async (req: Request, res: Response) => {
     }
 }
 
+const deleteAnalyticsStatsByGameId = async (gameId: string) => {
+    const analyticsUrl = process.env.ANALYTICS_API_URL
+    if (!analyticsUrl) {
+        console.error('ANALYTICS_API_URL is not configured')
+        return
+    }
+
+    try {
+        await fetch(`${analyticsUrl}/analytics/games/${gameId}`, {
+            method: 'DELETE',
+        })
+    } catch (error) {
+        console.error('Error deleting analytics stats for game:', error)
+    }
+}
+
 export const deleteGame = async (req: Request, res: Response) => {
     try {
         const rawId = req.params.id
@@ -248,6 +264,10 @@ export const deleteGame = async (req: Request, res: Response) => {
             })
         }
 
+        // 1. Notificar a analytics-api para limpiar las estadísticas asociadas
+        await deleteAnalyticsStatsByGameId(id)
+
+        // 2. Borrar el juego de la base de datos
         const query = `
             DELETE FROM games
             WHERE id = $1
