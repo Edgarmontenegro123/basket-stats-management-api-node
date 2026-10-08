@@ -1,7 +1,7 @@
-import { Request, Response } from 'express'
-import { randomUUID } from 'crypto'
-import { pool } from '../db/pool'
-import { CreatePlayerInput } from '../models/player'
+import {Request, Response} from 'express'
+import {randomUUID} from 'crypto'
+import {pool} from '../db/pool'
+import {CreatePlayerInput, SyncPlayerInput} from '../models/player'
 
 
 const validatePlayerInput = (
@@ -275,5 +275,84 @@ export const deletePlayer = async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: 'Failed to delete player' })
+    }
+}
+
+export const syncPlayersBatch = async (req: Request, res: Response) => {
+    try {
+        const players: SyncPlayerInput[] = req.body.players
+
+        if (!Array.isArray(players) || players.length === 0) {
+            return res.status(400).json({ error: 'players array is required' })
+        }
+
+        const syncedPlayers = []
+
+        for (const player of players) {
+            const { team_id, number, full_name } = player
+
+            if (!team_id || !full_name) {
+                continue
+            }
+
+            // Separar nombre y apellido básica (primer palabra = nombre, el resto = apellido)
+            const nameParts = full_name.trim().split(' ')
+            const firstName = nameParts[0] || 'Jugador'
+            const lastName = nameParts.slice(1).join(' ') || 'Sin Apellido'
+
+            // 1. Buscar si existe por team_id y dorsal/número
+            let existingPlayer = await pool.query(
+                `
+                    SELECT *
+                    FROM players
+                    WHERE team_id = $1 AND number = $2
+                    LIMIT 1
+                `,
+                [team_id, number]
+            )
+
+            // 2. Si no existe por número, buscar por coincidencia de nombre y apellido
+            if (existingPlayer.rows.length === 0) {
+                existingPlayer = await pool.query(
+                    `
+                        SELECT *
+                        FROM players
+                        WHERE team_id = $1 
+                          AND LOWER(first_name) = LOWER($2) 
+                          AND LOWER(last_name) = LOWER($3)
+                        LIMIT 1
+                    `,
+                    [team_id, firstName, lastName]
+                )
+            }
+
+            if (existingPlayer.rows.length > 0) {
+                // Si existe, devolver el jugador existente
+                syncedPlayers.push(existingPlayer.rows[0])
+            } else {
+                // Si no existe, crearlo
+                const id = randomUUID()
+                const newPlayer = await pool.query(
+                    `
+                        INSERT INTO players (
+                            id,
+                            team_id,
+                            first_name,
+                            last_name,
+                            number
+                        )
+                        VALUES ($1, $2, $3, $4, $5)
+                        RETURNING *
+                    `,
+                    [id, team_id, firstName, lastName, number || 0]
+                )
+                syncedPlayers.push(newPlayer.rows[0])
+            }
+        }
+
+        res.status(200).json(syncedPlayers)
+    } catch (error) {
+        console.error('Error syncing players batch:', error)
+        res.status(500).json({ error: 'Failed to sync players' })
     }
 }

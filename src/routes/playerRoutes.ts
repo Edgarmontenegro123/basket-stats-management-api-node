@@ -8,6 +8,7 @@ import {
     getPlayers,
     getPlayersByTeam,
     updatePlayer,
+    syncPlayersBatch,
 } from '../handlers/playerHandler'
 
 const router = Router()
@@ -15,6 +16,8 @@ const router = Router()
 router.get('/players', getPlayers)
 router.get('/players/:id', getPlayerById)
 router.get('/teams/:teamId/players', getPlayersByTeam)
+
+router.post('/players/sync', syncPlayersBatch)
 
 router.post('/players', authMiddleware, authoriseRoles('admin', 'coach'), createPlayer)
 router.put('/players/:id', authMiddleware, authoriseRoles('admin', 'coach'), updatePlayer)

@@ -24,3 +24,9 @@ export interface CreatePlayerInput {
     birth_date?: string
     photo_url?: string
 }
+
+export interface SyncPlayerInput {
+    team_id: string
+    number: number
+    full_name: string
+}
