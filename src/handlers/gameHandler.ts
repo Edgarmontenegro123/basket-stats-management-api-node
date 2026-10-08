@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
-import crypto from 'crypto';
-import { pool } from '../db/pool';
+import {Request, Response} from 'express'
+import crypto from 'crypto'
+import {pool} from '../db/pool'
+import jwt from 'jsonwebtoken'
 
 export const listGames = async (req: Request, res: Response) => {
     try {
@@ -239,14 +240,27 @@ export const updateGameResult = async (req: Request, res: Response) => {
 
 const deleteAnalyticsStatsByGameId = async (gameId: string) => {
     const analyticsUrl = process.env.ANALYTICS_API_URL
+    const jwtSecret = process.env.JWT_SECRET
+
     if (!analyticsUrl) {
         console.error('ANALYTICS_API_URL is not configured')
         return
     }
 
     try {
-        await fetch(`${analyticsUrl}/analytics/games/${gameId}`, {
+        const serviceToken = jwtSecret
+            ? jwt.sign(
+                { role: 'service', source: 'management-api' },
+                jwtSecret,
+                { expiresIn: '5m' }
+            )
+            : ''
+
+        await fetch(`${analyticsUrl}/games/${gameId}/stats`, {
             method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${serviceToken}`,
+            },
         })
     } catch (error) {
         console.error('Error deleting analytics stats for game:', error)
