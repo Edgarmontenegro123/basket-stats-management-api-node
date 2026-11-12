@@ -238,6 +238,44 @@ export const updateGameResult = async (req: Request, res: Response) => {
     }
 }
 
+export const updateGameDate = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+        const { date } = req.body
+
+        const query = `
+            UPDATE games
+            SET
+                game_date = $1,
+                updated_at = $2
+            WHERE id = $3
+            RETURNING *
+        `
+
+        const values = [
+            date,
+            new Date(),
+            id,
+        ]
+
+        const result = await pool.query(query, values)
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Game not found',
+            })
+        }
+
+        res.status(200).json(result.rows[0])
+    } catch (error) {
+        console.error('Error updating game date:', error)
+
+        res.status(500).json({
+            message: 'Error updating game date',
+        })
+    }
+}
+
 const deleteAnalyticsStatsByGameId = async (gameId: string) => {
     const analyticsUrl = process.env.ANALYTICS_API_URL
     const jwtSecret = process.env.JWT_SECRET
